@@ -603,6 +603,16 @@ nav.sidenav a.nl-bib:hover{border-color:#d6d6dc;background:#f5f5f7}
   .path li:not(:last-child)::after{display:none}
   #resumo .cards{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
 }
+/* botão de PDF (discreto) */
+.pdf-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.28);color:#fff;text-decoration:none;font-weight:700;font-size:.86rem;white-space:nowrap;transition:background .2s,border-color .2s}
+.pdf-btn:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.5)}
+.foot-pdf{margin-top:12px}
+.nl-pdf{margin-top:10px;border-top:1px solid var(--line)!important;padding-top:12px!important}
+@media(max-width:1199px){.viewbar .pdf-long{display:none}}
+@media(max-width:1039px){.viewbar .pdf-btn{display:none}}
+@media print{.pdf-btn,.nl-pdf{display:none!important}
+  body.pdf-one:not(.view-mobile) [data-view="mobile"]{display:none!important}
+  body.pdf-one.view-mobile [data-view="desktop"]{display:none!important}}
 @media(max-width:860px){ .step-body .step-text{position:static} }
 @media(max-width:560px){ .path{grid-template-columns:1fr} .hero-path{padding:10px 12px} .bib-contato .cards{grid-template-columns:1fr} .an-cover{width:72px} }
 </style>
@@ -627,6 +637,7 @@ nav.sidenav a.nl-bib:hover{border-color:#d6d6dc;background:#f5f5f7}
   <button class="nav-close" id="navClose" aria-label="Fechar menu">&times;</button>
   <h3>Navegação</h3>
   <div class="nav-group nav-ink">Visão geral</div><a href="#caminho" class="nl-ink"><span class="nl-dot nl-dot-ink"></span>O caminho até a biblioteca</a><div class="nav-group nav-red">Acesso pelo AVA</div><a href="#acesso" class="nl-red"><span class="nl-dot nl-dot-red"></span>Passo a passo até o acervo</a><div class="nav-group nav-bib">Biblioteca A+</div><a href="#busca" class="nl-bib"><span class="nl-dot nl-dot-bib"></span>Pesquise os seus livros</a><a href="#config" class="nl-bib"><span class="nl-dot nl-dot-bib"></span>Cor de fundo e idioma</a><div class="nav-group nav-ink">Final</div><a href="#resumo" class="nl-ink"><span class="nl-dot nl-dot-ink"></span>Resumo do acesso</a><a href="#contato" class="nl-bib"><span class="nl-dot nl-dot-bib"></span>Fale com a Biblioteca</a>
+  <a class="nl-pdf" href="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Computador_v10.pdf" download data-pdf data-pdf-pc="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Computador_v10.pdf" data-pdf-cel="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Celular_v10.pdf"><span class="nl-dot nl-dot-ink"></span>Baixar o tutorial em PDF</a>
 </nav>
 
 <section class="hero">
@@ -657,6 +668,7 @@ nav.sidenav a.nl-bib:hover{border-color:#d6d6dc;background:#f5f5f7}
       <button type="button" data-set="desktop" class="on" aria-pressed="true">&#128187; Computador</button>
       <button type="button" data-set="mobile" aria-pressed="false">&#128241; Celular</button>
     </div>
+    <a class="pdf-btn" href="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Computador_v10.pdf" download data-pdf data-pdf-pc="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Computador_v10.pdf" data-pdf-cel="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Celular_v10.pdf" aria-label="Baixar em PDF a visão selecionada"><span aria-hidden="true">&#11015;</span> <span class="pdf-long">Baixar </span>PDF</a>
   </div>
 </div>
 
@@ -921,6 +933,7 @@ nav.sidenav a.nl-bib:hover{border-color:#d6d6dc;background:#f5f5f7}
     <div class="credit">
       <span class="cr-title">Biblioteca Digital A+</span>
       <span class="cr-by">Desenvolvido por <strong>Ricardo Taira</strong></span>
+      <a class="pdf-btn foot-pdf" href="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Computador_v10.pdf" download data-pdf data-pdf-pc="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Computador_v10.pdf" data-pdf-cel="Tutorial_Biblioteca_Digital_A_Mais_UNILS_Celular_v10.pdf" aria-label="Baixar em PDF a visão selecionada"><span aria-hidden="true">&#11015;</span> Baixar o tutorial em PDF</a>
     </div>
   </div>
   <div class="foot-bottom">Portal do Aluno · AVA · Biblioteca Digital A+</div>
@@ -1023,6 +1036,27 @@ nav.sidenav a.nl-bib:hover{border-color:#d6d6dc;background:#f5f5f7}
     var first=f[0], last=f[f.length-1];
     if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
     else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  });
+
+  // ===== botão de PDF: baixa o arquivo publicado ao lado; sem ele, abre a impressão =====
+  document.querySelectorAll('[data-pdf]').forEach(function(a){
+    a.addEventListener('click',function(e){
+      e.preventDefault();
+      var mob=document.body.classList.contains('view-mobile');
+      var href=a.getAttribute(mob?'data-pdf-cel':'data-pdf-pc');
+      function viaPrint(){
+        try{ closeNav(); }catch(_){}
+        document.body.classList.add('pdf-one');
+        window.print();
+        setTimeout(function(){ document.body.classList.remove('pdf-one'); },1000);
+      }
+      if(!/^https?:$/.test(location.protocol) || !window.fetch){ viaPrint(); return; }
+      fetch(href,{method:'HEAD',cache:'no-store'}).then(function(r){
+        if(!r.ok) throw 0;
+        var t=document.createElement('a'); t.href=href; t.setAttribute('download',href);
+        document.body.appendChild(t); t.click(); t.remove();
+      }).catch(viaPrint);
+    });
   });
 
   toTop.addEventListener('click',function(){window.scrollTo({top:0,behavior:smooth()});});
